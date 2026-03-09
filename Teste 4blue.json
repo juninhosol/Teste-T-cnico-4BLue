@@ -1,0 +1,693 @@
+{
+  "name": "Teste 4blue",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3cff0310-ae27-4b78-a813-50fdc948761a",
+              "name": "body.nome_completo",
+              "value": "={{ $json.body.nome_completo\n  .toLowerCase()\n  .split(\" \")\n  .map(n => n.charAt(0).toUpperCase() + n.slice(1))\n  .join(\" \"); \n}}",
+              "type": "string"
+            },
+            {
+              "id": "15fdc5c4-2b3b-4776-823d-ec3ee0a31d5f",
+              "name": "body.telefone",
+              "value": "={{ $json.body.telefone.replace(/\\D/g, \"\"); }}",
+              "type": "string"
+            },
+            {
+              "id": "a3828be2-6e72-4f72-81fd-d1a81e4549a5",
+              "name": "body.data_nascimento",
+              "value": "={{ $json.body.data_nascimento.split(\"/\").reverse().join(\"-\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "body.email, body.curso",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        0
+      ],
+      "id": "56e87a7e-3cbd-4137-ba5c-761fc7e814a1",
+      "name": "Trata dados"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "10fb6ef6-3482-4048-bddc-43d73e3f4805",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -928,
+        0
+      ],
+      "id": "6ad8e857-5b11-41a5-af51-b7a581cf41ce",
+      "name": "Entrada de dados",
+      "webhookId": "10fb6ef6-3482-4048-bddc-43d73e3f4805"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.curso }}",
+                    "rightValue": "=Tech",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "69d6e433-6170-40dd-a797-77953f2ee8fe"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Tech"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "08530c94-8824-4484-bc4c-86eeea5c0a9c",
+                    "leftValue": "={{ $json.curso }}",
+                    "rightValue": "Business",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Business"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -576,
+        -16
+      ],
+      "id": "240e3c08-6d47-480f-8bf3-84a9b0185e6b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "juniorsolarenco@gmail.com",
+        "subject": "Matrícula já existente!",
+        "emailType": "text",
+        "message": "=Olá {{ $json.Nome }}, identificamos que o seu e-mail {{ $json.Email }} já possui uma matrícula ativa em nossa base.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        96,
+        -64
+      ],
+      "id": "09e2bca4-c8d0-4f74-a41d-87f05d6fd7f9",
+      "name": "Avisa matricula existente",
+      "webhookId": "77bfc013-2903-4752-b80c-5263b2048e51",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mbDwa13EEqW0HIKM",
+          "name": "Gmail account 19"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "juniorsolarenco@gmail.com",
+        "subject": "Matrícula realizada com sucesso!",
+        "emailType": "text",
+        "message": "=Olá {{ $json.Nome }}, sua matrícula no curso {{ $json.Curso }} foi recebida com sucesso!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        368,
+        -128
+      ],
+      "id": "d8761010-6ffb-465b-9ed6-e862550ad4f0",
+      "name": "Matrícula feita com sucesso",
+      "webhookId": "77bfc013-2903-4752-b80c-5263b2048e51",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mbDwa13EEqW0HIKM",
+          "name": "Gmail account 19"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \"Nome\", \"Email\", \"Curso\" FROM \"Matriculas_Business\" WHERE \"Email\" = '{{ $json.email }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -352,
+        112
+      ],
+      "id": "d0a0ef4d-a585-4423-8aba-59d056ff7e3d",
+      "name": "Busca de dados no banco(business)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "6JGO6ApRePAAAvqF",
+          "name": "Postgres account 13"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \"Nome\", \"Email\", \"Curso\" FROM \"Matriculas_Tech\" WHERE \"Email\" = '{{ $json.email }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -336,
+        -192
+      ],
+      "id": "d3487793-af39-46c7-97de-2f3a0798569b",
+      "name": "Busca de dados no banco(tech)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "6JGO6ApRePAAAvqF",
+          "name": "Postgres account 13"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d8597ae-831b-497a-ad3c-f639f90011c7",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        -192
+      ],
+      "id": "06ce767b-44e6-4de5-9f72-3edc9d73d15f",
+      "name": " Campo email no banco TECH vazio?"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Matriculas_Business",
+          "mode": "list",
+          "cachedResultName": "Matriculas_Business"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nome": "={{ $('Trata dados').item.json.body.nome_completo }}",
+            "Telefone": "={{ $('Trata dados').item.json.body.telefone }}",
+            "Email": "={{ $('Trata dados').item.json.email }}",
+            "Data_Nascimento": "={{ $('Trata dados').item.json.body.data_nascimento }}",
+            "Curso": "={{ $('Trata dados').item.json.curso }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Nome",
+              "displayName": "Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Data_Nascimento",
+              "displayName": "Data_Nascimento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telefone",
+              "displayName": "Telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Curso",
+              "displayName": "Curso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        272
+      ],
+      "id": "60d2e8a1-3b92-4109-868b-b1be8c53f617",
+      "name": "Adiciona dados no banco business",
+      "credentials": {
+        "postgres": {
+          "id": "6JGO6ApRePAAAvqF",
+          "name": "Postgres account 13"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d8597ae-831b-497a-ad3c-f639f90011c7",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        112
+      ],
+      "id": "22c41468-35a8-4aeb-b946-de70421ba1a1",
+      "name": " Campo email no banco business vazio?"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Matriculas_Tech",
+          "mode": "list",
+          "cachedResultName": "Matriculas_Tech"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nome": "={{ $('Trata dados').item.json.body.nome_completo }}",
+            "Email": "={{ $('Trata dados').item.json.email }}",
+            "Data_Nascimento": "={{ $('Trata dados').item.json.body.data_nascimento }}",
+            "Telefone": "={{ $('Trata dados').item.json.body.telefone }}",
+            "Curso": "={{ $('Trata dados').item.json.curso }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Nome",
+              "displayName": "Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Data_Nascimento",
+              "displayName": "Data_Nascimento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telefone",
+              "displayName": "Telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Curso",
+              "displayName": "Curso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        96,
+        -272
+      ],
+      "id": "69c9a51c-8d9b-4bdc-8714-9ffbd7587ce9",
+      "name": "Adiciona dados no banco tech",
+      "credentials": {
+        "postgres": {
+          "id": "6JGO6ApRePAAAvqF",
+          "name": "Postgres account 13"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "outlook_55844B83AC997F57@outlook.com",
+        "subject": "Matrícula realizada com sucesso!",
+        "bodyContent": "=Olá {{ $json.Nome }}, sua matrícula no curso {{ $json.Curso }} foi recebida com sucesso!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        368,
+        48
+      ],
+      "id": "f9b784c9-26d9-4b9e-9e54-11ebd08c2b95",
+      "name": "Matrícula feita com sucesso(Outlook)",
+      "webhookId": "0310e777-d5c5-4f72-a617-936cbdf28799",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "wcKRzYSgJpIFDaXv",
+          "name": "Microsoft Outlook account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "outlook_55844B83AC997F57@outlook.com",
+        "subject": "Mátricula já existente!",
+        "bodyContent": "=Olá {{ $json.Nome }}, identificamos que o seu e-mail {{ $json.Email }} já possui uma matrícula ativa em nossa base.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        96,
+        80
+      ],
+      "id": "d2595ee1-9844-434d-a7a3-21fc672873d5",
+      "name": "Avisa matricula existente(Outlook)",
+      "webhookId": "0310e777-d5c5-4f72-a617-936cbdf28799",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "wcKRzYSgJpIFDaXv",
+          "name": "Microsoft Outlook account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada de dados": {
+      "main": [
+        [
+          {
+            "node": "Trata dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trata dados": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Busca de dados no banco(tech)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Busca de dados no banco(business)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Busca de dados no banco(business)": {
+      "main": [
+        [
+          {
+            "node": " Campo email no banco business vazio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca de dados no banco(tech)": {
+      "main": [
+        [
+          {
+            "node": " Campo email no banco TECH vazio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Campo email no banco TECH vazio?": {
+      "main": [
+        [
+          {
+            "node": "Adiciona dados no banco tech",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisa matricula existente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Avisa matricula existente(Outlook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adiciona dados no banco business": {
+      "main": [
+        [
+          {
+            "node": "Matrícula feita com sucesso",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Matrícula feita com sucesso(Outlook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Campo email no banco business vazio?": {
+      "main": [
+        [
+          {
+            "node": "Adiciona dados no banco business",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisa matricula existente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Avisa matricula existente(Outlook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adiciona dados no banco tech": {
+      "main": [
+        [
+          {
+            "node": "Matrícula feita com sucesso",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Matrícula feita com sucesso(Outlook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a0ab7270-c46b-443a-8ae5-cc5a0b52346b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc0bcbaed5942825d40eb7dd9dcbb6ab0108046af92a3af9d5e04ea54a24a948"
+  },
+  "id": "dg3Bdygk2MT67nng",
+  "tags": []
+}
