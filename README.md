@@ -1,4 +1,4 @@
-# Teste-T-cnico-4BLue
+# Teste Técnico 4Blue
 Esse é um repositório com a solução para o teste técnico da 4blue
 
 Link do vídeo da solução:
